@@ -110,10 +110,10 @@ public class WalletTest {
             @ForAll @Positive int amount
     ){
         var wallet = new Wallet();
-        wallet.add(coin,1);
-        wallet.remove(coin,1);
+        wallet.add(coin,amount);
+        wallet.remove(coin,amount);
 
-        assert(wallet.isEmpty());
+        assertEquals(0, wallet.getAmount(coin));
     }
 
 }
