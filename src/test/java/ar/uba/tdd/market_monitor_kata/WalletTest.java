@@ -1,30 +1,38 @@
 package ar.uba.tdd.market_monitor_kata;
 
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import net.jqwik.api.Assume;
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
+import net.jqwik.api.constraints.Positive;
+import org.junit.jupiter.api.Test;
+
+import java.beans.BeanProperty;
+import java.util.Objects;
+
+import static org.junit.gen5.api.Assertions.*;
 
 public class WalletTest {
     @Test
-    public void createNonNullWallet(){
-        assertNotNull(null, new Wallet());
+    void createNonNullWallet(){
+        assertNotNull(new Wallet());
     }
 
     @Test
-    public void walletStartsOutEmpty(){
+    void walletStartsOutEmpty(){
         var wallet = new Wallet();
         assertTrue(wallet.isEmpty());
     }
 
     @Test
-    public void walletIsNotEmptyAfterAddingPositiveAmount(){
+    void walletIsNotEmptyAfterAddingPositiveAmount(){
         var wallet = new Wallet();
         wallet.add("BTC",1);
         assertFalse(wallet.isEmpty());
     }
 
     @Test
-    public void addingNegativeAmountToWalletThrowsException(){
+    void addingNegativeAmountToWalletThrowsException(){
         var wallet = new Wallet();
         wallet.add("BTC",1);
         assertFalse(wallet.isEmpty());
@@ -34,7 +42,7 @@ public class WalletTest {
     }
 
     @Test
-    public void addingZeroAmountToWalletThrowsException(){
+    void addingZeroAmountToWalletThrowsException(){
         var wallet = new Wallet();
         wallet.add("BTC",1);
         assertFalse(wallet.isEmpty());
@@ -44,15 +52,68 @@ public class WalletTest {
     }
 
     @Test
-    public void walletHasInitialAmountZero(){
+    void walletHasInitialAmountZero(){
         var wallet = new Wallet();
         assertEquals(0, wallet.getAmount("BTC"));
     }
 
     @Test
-    public void addingAnAmountToACoinInTheWalletLeavesThatAmountInTheWallet(){
+    void addingAnAmountToACoinInTheWalletLeavesThatAmountInTheWallet(){
         var wallet = new Wallet();
         wallet.add("BTC",1);
         assertEquals(1, wallet.getAmount("BTC"));
     }
+
+
+
+    // Para cualquier par de monedas arbitraria probar
+    @Property
+    void addingAmountToDifferentCoinsLeavesDifferentAmountsInTheWallet(
+        @ForAll String firstCoin,
+        @ForAll String secondCoin
+    ){
+        Assume.that(!Objects.equals(firstCoin, secondCoin));
+
+        var wallet = new Wallet();
+        wallet.add("BTC",1);
+        wallet.add("ETH",2);
+
+        assertEquals(1, wallet.getAmount("BTC"));
+        assertEquals(2, wallet.getAmount("ETH"));
+    }
+
+
+    @Property
+    void addingToSameCoinLeavesAddedAmountsInTheWallet(
+            @ForAll String coin,
+            @ForAll @Positive int firstAmount,
+            @ForAll @Positive int secondAmount
+    ){
+        var wallet = new Wallet();
+        wallet.add(coin,firstAmount);
+        wallet.add(coin,secondAmount);
+        assertEquals(firstAmount + secondAmount, wallet.getAmount(coin));
+    }
+
+
+    @Test
+    void removingFromEmptyWalletThrowsException(){
+        var wallet = new Wallet();
+        assertThrows(InvalidAmountException.class, () -> {
+            wallet.remove("BTC",1);
+        });
+    }
+
+    @Property
+    void addingAndThenRemovingCurrencyFromWalletMaintainsAmount(
+            @ForAll String coin,
+            @ForAll @Positive int amount
+    ){
+        var wallet = new Wallet();
+        wallet.add(coin,1);
+        wallet.remove(coin,1);
+
+        assert(wallet.isEmpty());
+    }
+
 }

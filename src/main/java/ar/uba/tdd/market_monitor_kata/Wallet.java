@@ -1,27 +1,34 @@
 package ar.uba.tdd.market_monitor_kata;
 
+import java.util.HashMap;
 import java.util.Vector;
 
 public class Wallet {
 
-    Vector<String> coins = new Vector<String>();
-
-    int amount = 0;
+    HashMap<String,Integer> amount = new HashMap<String,Integer>();
     boolean isEmpty = true;
 
     public boolean isEmpty() {
-        return this.amount == 0;
+        return this.amount.isEmpty();
     }
 
     public void add(String currency, int amount) {
         if(amount <= 0){
             throw new InvalidAmountException();
         }else{
-            this.amount = amount;
+            this.amount.put(currency, amount + this.getAmount(currency));
         }
     }
 
     public int getAmount(String currency) {
-        return this.amount;
+        return this.amount.getOrDefault(currency,0);
+    }
+
+    public void remove(String currency, int amount) {
+        if (amount <= 0  || this.isEmpty()){
+            throw new InvalidAmountException();
+        }
+
+        this.amount.put(currency, this.getAmount(currency) - amount);
     }
 }
